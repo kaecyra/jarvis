@@ -136,21 +136,21 @@ class Core implements AppInterface, LoggerAwareInterface, EventAwareInterface {
                 [
                     'appversion'        => APP_VERSION,
                     'appdir'            => PATH_ROOT,
-                    'appdescription'    => 'Vanilla Product Queue',
-                    'appnamespace'      => 'Vanilla\\QueueWorker',
-                    'appname'           => 'QueueWorker',
+                    'appdescription'    => 'JARVIS home automation central core',
+                    'appnamespace'      => 'Kaecyra\\Jarvis\\Core',
+                    'appname'           => 'Core',
                     'authorname'        => 'Tim Gunter',
                     'authoremail'       => 'tim@vanillaforums.com'
                 ],
                 new Reference([ConfigInterface::class, 'daemon'])
             ])
-            ->addCall('configure', [new Reference([AbstractConfig::class, "daemon"])]);
+            ->addCall('configure', [new Reference([ConfigInterface::class, "daemon"])]);
 
         // Set up loggers
 
         $logger = new \Kaecyra\AppCommon\Log\AggregateLogger;
-        $logLevel = $container->get(AbstractConfig::class)->get('log.level');
-        $loggers = $container->get(AbstractConfig::class)->get('log.loggers');
+        $logLevel = $container->get(ConfigInterface::class)->get('log.level');
+        $loggers = $container->get(ConfigInterface::class)->get('log.loggers');
         foreach ($loggers as $logConfig) {
             $loggerClass = "Kaecyra\\AppCommon\\Log\\".ucfirst($logConfig['destination']).'Logger';
             if ($container->has($loggerClass)) {
