@@ -14,6 +14,8 @@
 namespace Kaecyra\Jarvis\Core;
 
 use \Garden\Daemon\Daemon;
+
+use \Psr\Log\LoggerInterface;
 use \Psr\Log\LogLevel;
 
 // Switch to queue root
@@ -34,12 +36,13 @@ foreach ($paths as $path) {
 }
 
 // Run bootstrap
-Core::bootstrap();
+$container = new \Garden\Container\Container;
+Core::bootstrap($container);
 
 $exitCode = 0;
 try {
 
-    $daemon = $di->get(Daemon::class);
+    $daemon = $container->get(Daemon::class);
     $exitCode = $daemon->attach($argv);
 
 } catch (\Garden\Daemon\Exception $ex) {
@@ -50,9 +53,9 @@ try {
         if ($ex->getFile()) {
             $line = $ex->getLine();
             $file = $ex->getFile();
-            $logger->log(LogLevel::ERROR, "Error on line {$line} of {$file}:");
+            $container->get(LoggerInterface::class)->log(LogLevel::ERROR, "Error on line {$line} of {$file}:");
         }
-        $logger->log(LogLevel::ERROR, $ex->getMessage());
+        $container->get(LoggerInterface::class)->log(LogLevel::ERROR, $ex->getMessage());
     }
 
 } catch (\Exception $ex) {
@@ -61,9 +64,9 @@ try {
     if ($ex->getFile()) {
         $line = $ex->getLine();
         $file = $ex->getFile();
-        $logger->log(LogLevel::ERROR, "Error on line {$line} of {$file}:");
+        $container->get(LoggerInterface::class)->log(LogLevel::ERROR, "Error on line {$line} of {$file}:");
     }
-    $logger->log(LogLevel::ERROR, $ex->getMessage());
+    $container->get(LoggerInterface::class)->log(LogLevel::ERROR, $ex->getMessage());
 }
 
 exit($exitCode);

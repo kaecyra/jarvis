@@ -7,6 +7,10 @@
 
 namespace Kaecyra\Jarvis\Core;
 
+use Kaecyra\Jarvis\Core\Addon\AddonManager;
+use Kaecyra\Jarvis\Core\Error\FatalErrorHandler;
+use Kaecyra\Jarvis\Core\Error\LogErrorHandler;
+
 use Garden\Container\Container;
 use Garden\Container\Reference;
 use Garden\Daemon\Daemon;
@@ -159,7 +163,7 @@ class Core implements AppInterface, LoggerAwareInterface, EventAwareInterface {
             }
         }
 
-        $logger->containersableLogger('persist');
+        $logger->disableLogger('persist');
         $container->setInstance(LoggerInterface::class, $logger);
     }
 
@@ -252,7 +256,18 @@ class Core implements AppInterface, LoggerAwareInterface, EventAwareInterface {
     public function run($workerConfig) {
 
         // RUN
+        $this->log(LogLevel::INFO, "running");
 
+    }
+
+    /**
+     * Dismiss app
+     *
+     *
+     */
+    public function dismiss() {
+        // NOOP
+        $this->log(LogLevel::INFO, "stopping");
     }
 
 }

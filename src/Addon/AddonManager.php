@@ -7,8 +7,7 @@
 
 namespace Kaecyra\Jarvis\Core\Addon;
 
-use Kaecyra\Jarvis\Core\Log\LoggerBoilerTrait;
-
+use Kaecyra\AppCommon\Log\LoggerBoilerTrait;
 use Kaecyra\AppCommon\AbstractConfig;
 use Kaecyra\AppCommon\Event\EventAwareInterface;
 use Kaecyra\AppCommon\Event\EventAwareTrait;
