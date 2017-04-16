@@ -1,0 +1,29 @@
+{
+    "daemon": {
+        "runasgroup": "root",
+        "runasuser": "root",
+        "concurrent": false,
+        "daemonize": true,
+        "mode": "single"
+    },
+    "addons": {
+        "scan": [
+            "addons/",
+            "vendors/"
+        ]
+    },
+    "log": {
+        "level": "info",
+        "loggers": [
+            {
+                "destination": "echo",
+                "key": "echo"
+            },
+            {
+                "destination": "filesystem",
+                "file": "log/daemon.log",
+                "key": "persist"
+            }
+        ]
+    }
+}

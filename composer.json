@@ -1,0 +1,47 @@
+{
+    "name": "kaecyra/jarvis",
+    "description": "JARVIS home automation central core",
+    "keywords": ["jarvis","home","automation"],
+    "homepage": "https://github.com/kaecyra/jarvis",
+    "type": "project",
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "authors": [
+        {
+            "name": "Tim Gunter",
+            "email": "tim@vanillaforums.com",
+            "homepage": "https://vanillaforums.com"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "git@github.com:vanilla/garden-daemon.git"
+        },
+        {
+            "type": "git",
+            "url": "git@github.com:kaecyra/app-common.git"
+        }
+    ],
+    "config": {
+        "bin-dir": "./"
+    },
+    "bin": [
+        "bin/queue.php"
+    ],
+    "require": {
+        "php": ">=7.0",
+        "kaecyra/app-common": "dev-master",
+        "container-interop/container-interop": "^1.1",
+        "vanilla/garden-container": "^1.3",
+        "vanilla/garden-daemon": "dev-master",
+        "vanilla/garden-cli": "^1.6",
+        "vanilla/garden-http": "^1.1",
+        "psr/log": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kaecyra\\Jarvis\\Core\\": "src"
+        }
+    }
+}
