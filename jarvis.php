@@ -37,7 +37,7 @@ foreach ($paths as $path) {
 
 // Run bootstrap
 $container = new \Garden\Container\Container;
-Core::bootstrap($container);
+Jarvis::bootstrap($container);
 
 $exitCode = 0;
 try {

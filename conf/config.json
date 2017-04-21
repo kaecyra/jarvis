@@ -12,6 +12,22 @@
             "vendors/"
         ]
     },
+    "routes": [
+        {
+            "route": "/"
+        }
+    ],
+    "client": {
+        "discovery": {
+            
+        },
+        "auth": [
+            {
+                "method": "PresharedKey",
+                "psk": ""
+            }
+        ]
+    },
     "log": {
         "level": "info",
         "loggers": [

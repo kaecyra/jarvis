@@ -7,9 +7,14 @@
 
 namespace Kaecyra\Jarvis\Core;
 
-use Kaecyra\Jarvis\Core\Addon\AddonManager;
+Use Kaecyra\Jarvis\Core\Log\JarvisLogInterface;
 use Kaecyra\Jarvis\Core\Error\FatalErrorHandler;
 use Kaecyra\Jarvis\Core\Error\LogErrorHandler;
+use Kaecyra\Jarvis\Core\Addon\AddonManager;
+use Kaecyra\Jarvis\Core\Client\ClientManager;
+use Kaecyra\Jarvis\Core\Client\ClientInterface;
+use Kaecyra\Jarvis\Core\Server\SocketApp;
+use Kaecyra\Jarvis\Core\Server\SocketServer;
 
 use Garden\Container\Container;
 use Garden\Container\Reference;
@@ -32,6 +37,9 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LogLevel;
 
+use React\EventLoop\LoopInterface;
+use React\EventLoop\Factory as EventLoopFactory;
+
 /**
  * JARVIS home automation central core.
  *
@@ -39,7 +47,7 @@ use Psr\Log\LogLevel;
  * @package jarvis
  * @version 1.0
  */
-class Core implements AppInterface, LoggerAwareInterface, EventAwareInterface {
+class Jarvis implements AppInterface, LoggerAwareInterface, EventAwareInterface {
 
     use LoggerAwareTrait;
     use LoggerBoilerTrait;
@@ -68,6 +76,9 @@ class Core implements AppInterface, LoggerAwareInterface, EventAwareInterface {
      * @var Cli
      */
     protected $cli;
+
+
+    protected $clientManager;
 
     /**
      * Bootstrap
@@ -132,6 +143,9 @@ class Core implements AppInterface, LoggerAwareInterface, EventAwareInterface {
             ->rule(EventAwareInterface::class)
             ->addCall('setEventManager')
 
+            ->rule(JarvisLogInterface::class)
+            ->addCall('setDefaultLogCallback')
+
             ->rule(AddonManager::class)
             ->setConstructorArgs([new Reference([ConfigInterface::class, 'addons.scan'])])
 
@@ -142,7 +156,7 @@ class Core implements AppInterface, LoggerAwareInterface, EventAwareInterface {
                     'appdir'            => PATH_ROOT,
                     'appdescription'    => 'JARVIS home automation central core',
                     'appnamespace'      => 'Kaecyra\\Jarvis\\Core',
-                    'appname'           => 'Core',
+                    'appname'           => 'Jarvis',
                     'authorname'        => 'Tim Gunter',
                     'authoremail'       => 'tim@vanillaforums.com'
                 ],
@@ -165,21 +179,47 @@ class Core implements AppInterface, LoggerAwareInterface, EventAwareInterface {
 
         $logger->disableLogger('persist');
         $container->setInstance(LoggerInterface::class, $logger);
+
+        // Set up loop
+        $container
+            ->rule(LoopInterface::class)
+            ->setFactory([EventLoopFactory::class, 'create'])
+            ->setShared(true);
+
+        // Set up socket app routes
+        $container
+            ->rule(SocketApp::class)
+            ->addCall('addRoutes', [new Reference([ConfigInterface::class, "routes"])]);
+
+        // Set up socket server
+        $container
+            ->rule(SocketServer::class)
+            ->addAlias('DefaultServer')
+            ->setShared(false);
+
+        // Set up clients
+        $container
+                ->rule(ClientManager::Class)
+                ->addCall('addAuthMethods', [new Reference([ConfigInterface::class, "client.auth"])]);
+
+        $container
+            ->rule(ClientInterface::class)
+            ->setShared(false);
     }
 
     /**
      * Construct app
      *
-     * @param Container $container
+     * @param ContainerInterface $container
      * @param Cli $cli
-     * @param AbstractConfig $config
+     * @param ConfigInterface $config
      * @param AddonManager $addons
      * @param ErrorHandler $errorHandler
      */
     public function __construct(
-        Container $container,
+        ContainerInterface $container,
         Cli $cli,
-        AbstractConfig $config,
+        ConfigInterface $config,
         AddonManager $addons,
         ErrorHandler $errorHandler
     ) {
@@ -187,16 +227,6 @@ class Core implements AppInterface, LoggerAwareInterface, EventAwareInterface {
         $this->cli = $cli;
         $this->config = $config;
         $this->addons = $addons;
-
-        // Set worker allocation oversight strategy
-        $strategyClass = $this->config->get('queue.oversight.strategy');
-        $this->container->rule(AllocationStrategyInterface::class);
-        $this->container->setClass($strategyClass);
-
-        // Set job parser
-        $parserClass = $this->config->get('queue.message.parser');
-        $this->container->rule(ParserInterface::class);
-        $this->container->setClass($parserClass);
 
         // Add logging error handler
         $logHandler = $this->container->get(LogErrorHandler::class);
@@ -251,13 +281,16 @@ class Core implements AppInterface, LoggerAwareInterface, EventAwareInterface {
      *
      * Returning from this function ends the process.
      *
-     * @param array $workerConfig
+     * @param array $invocationConfig
      */
-    public function run($workerConfig) {
+    public function run($invocationConfig = []) {
 
-        // RUN
-        $this->log(LogLevel::INFO, "running");
+        $this->log(LogLevel::NOTICE, "Creating socket router");
 
+        $socketApp = $this->container->get(SocketApp::class);
+        $socketApp->run();
+
+        $this->log(LogLevel::NOTICE, "Listeners closed");
     }
 
     /**
@@ -267,7 +300,7 @@ class Core implements AppInterface, LoggerAwareInterface, EventAwareInterface {
      */
     public function dismiss() {
         // NOOP
-        $this->log(LogLevel::INFO, "stopping");
+        $this->log(LogLevel::INFO, "Stopping");
     }
 
 }

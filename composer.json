@@ -37,7 +37,9 @@
         "vanilla/garden-daemon": "dev-master",
         "vanilla/garden-cli": "^1.6",
         "vanilla/garden-http": "^1.1",
-        "psr/log": "^1.0"
+        "psr/log": "^1.0",
+        "cboden/ratchet": "^0.3",
+        "react/zmq": "^0.3"
     },
     "autoload": {
         "psr-4": {
